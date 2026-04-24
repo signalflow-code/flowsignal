@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignalFlow</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  color: #ffffff;
+  padding: 20px;
+  background: linear-gradient(270deg, #020617, #0f172a, #312e81, #581c87, #020617);
+  background-size: 800% 800%;
+  animation: gradientMove 16s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.card {
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 0 45px rgba(56,189,248,0.18);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 5px;
+  background: linear-gradient(90deg, #38bdf8, #a855f7, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  text-align: center;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.warning {
+  background: linear-gradient(90deg, rgba(124,45,18,.9), rgba(69,26,3,.9));
+  color: #fed7aa;
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+select {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,.35);
+  background: rgba(2,6,23,0.75);
+  color: #ffffff;
+  outline: none;
+}
+
+.btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+button {
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .25s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(56,189,248,0.55);
+}
+
+.btn-generate {
+  background: linear-gradient(90deg, #22c55e, #14b8a6);
+  color: #03130b;
+}
+
+.btn-random {
+  background: linear-gradient(90deg, #facc15, #fb923c);
+  color: #111827;
+}
+
+.btn-copy-block {
+  background: linear-gradient(90deg, #38bdf8, #6366f1, #a855f7);
+  color: white;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.output-area {
+  margin-top: 22px;
+}
+
+.output-block {
+  background: rgba(2,6,23,0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148,163,184,0.25);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 28px rgba(168,85,247,0.18);
+}
+
+.output-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 15px;
+  max-height: 650px;
+  overflow: auto;
+}
+
+@media(max-width: 800px) {
+  body {
+    padding: 12px;
+  }
+
+  .form-grid,
+  .btn-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="card">
+
+    <h1>📲 SignalFlow</h1>
+    <p class="subtitle">Auto Signal Full 1 Hari</p>
+
+    <div class="warning">
+      Signal hanya simulasi, gunakan dengan bijak.
+    </div>
+
+    <div class="form-grid">
+      <select id="durasi">
+        <option value="1 Menit (M1)">1 Menit (M1)</option>
+        <option value="5 Menit (M5)">5 Menit (M5)</option>
+      </select>
+
+      <select id="jarak">
+        <option value="5">5 Menit</option>
+        <option value="10">10 Menit</option>
+        <option value="15">15 Menit</option>
+      </select>
+
+      <select id="metode">
+        <option value="Max K2 (Kompensasi Level 2)">Max K2 (Kompensasi Level 2)</option>
+        <option value="K1 Aman">K1 Aman</option>
+      </select>
+    </div>
+
+    <div class="btn-grid">
+      <button class="btn-generate" onclick="generateSignal(false)">GENERATE</button>
+      <button class="btn-random" onclick="generateSignal(true)">ACAK</button>
+    </div>
+
+    <div id="result" class="output-area">
+      <div class="output-block">
+        <div class="output-text">Hasil signal akan muncul di sini...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const markets = [
+  "ASIA COMPOSITE INDEX",
+  "CRYPTO COMPOSITE INDEX",
+  "EUROPE COMPOSITE INDEX",
+  "NUSANTARA HALAL INDEX"
+];
+
+function formatDate() {
+  const d = new Date();
+  return d.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function makeLine(time, dir) {
+  return (dir === "BUY" ? "🔼 " : "🔽 ") + time + " " + dir;
+}
+
+function pattern(total, randomMode) {
+  const patterns = [
+    ["BUY","SELL","BUY","SELL","SELL","BUY","SELL","BUY","BUY","SELL","SELL","BUY"],
+    ["SELL","BUY","SELL","BUY","BUY","SELL","BUY","SELL","SELL","BUY","BUY","SELL"],
+    ["BUY","BUY","SELL","SELL","BUY","SELL","BUY","SELL","BUY","BUY","SELL","SELL"],
+    ["SELL","SELL","BUY","BUY","SELL","BUY","SELL","BUY","SELL","SELL","BUY","BUY"]
+  ];
+
+  const base = patterns[Math.floor(Math.random() * patterns.length)];
+  let result = [];
+
+  for (let i = 0; i < total; i++) {
+    if (randomMode) {
+      result.push(Math.random() > 0.5 ? "BUY" : "SELL");
+    } else {
+      result.push(base[i % base.length]);
+    }
+  }
+
+  return result;
+}
+
+function createMarketText(market, jam, randomMode) {
+  const durasi = document.getElementById("durasi").value;
+  const metode = document.getElementById("metode").value;
+  const jarak = parseInt(document.getElementById("jarak").value);
+  const total = Math.floor(60 / jarak);
+  const pola = pattern(total, randomMode);
+
+  let txt = "";
+
+  txt += "[ 📊 MARKET OVERVIEW ]\n";
+  txt += "• Asset: " + market + "\n";
+  txt += "• Zona Waktu: WIB (GMT+7)\n";
+  txt += "• Durasi: " + durasi + "\n";
+  txt += "• Metode: " + metode + "\n\n";
+
+  txt += "[ 🕒 SCHEDULE LIST ]\n\n";
+  txt += "⏰ " + String(jam).padStart(2, "0") + ":00 - " + String(jam).padStart(2, "0") + ":55\n\n";
+
+  for (let menit = 0, i = 0; menit < 60; menit += jarak, i++) {
+    const time = String(jam).padStart(2, "0") + ":" + String(menit).padStart(2, "0");
+    txt += makeLine(time, pola[i]) + "\n";
+  }
+
+  txt += "\n";
+  return txt;
+}
+
+function createClosingText() {
+  let txt = "";
+
+  txt += "🔴 LINK LOGIN\n";
+  txt += "https://olymp.gl/OlympTradeAsia\n\n";
+
+  txt += "💡 SMART TRADING TIPS:\n";
+  txt += "⚡ Prioritaskan FTT jika 3 candle sebelumnya searah.\n";
+  txt += "⚡ Gunakan Kompensasi dengan bijak (K2).\n";
+  txt += "⚡ Analisa ulang jika market sedang sideways.\n";
+
+  return txt;
+}
+
+function generateSignal(randomMode) {
+  let html = "";
+
+  for (let jam = 0; jam < 24; jam += 2) {
+    const blockId = "block_" + jam;
+
+    let blockText = "";
+    blockText += "📲 TITIK ENTRY DAILY SIGNAL 📲\n";
+    blockText += "Edisi: " + formatDate() + "\n\n";
+
+    const market1 = markets[jam % 4];
+    const market2 = markets[(jam + 1) % 4];
+
+    blockText += createMarketText(market1, jam, randomMode);
+    blockText += createMarketText(market2, jam + 1, randomMode);
+    blockText += createClosingText();
+
+    html += `
+      <div class="output-block">
+        <div class="output-text" id="${blockId}">${blockText}</div>
+        <button class="btn-copy-block" onclick="copyBlock('${blockId}')">COPY FORMAT 2 MARKET</button>
+      </div>
+    `;
+  }
+
+  document.getElementById("result").innerHTML = html;
+}
+
+function copyBlock(id) {
+  const text = document.getElementById(id).innerText;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function() {
+      alert("Format berhasil dicopy!");
+    }).catch(function() {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    document.execCommand("copy");
+    alert("Format berhasil dicopy!");
+  } catch (err) {
+    alert("Gagal copy. Silakan copy manual.");
+  }
+
+  document.body.removeChild(textarea);
+}
+</script>
+
+</body>
+</html>
